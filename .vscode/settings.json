@@ -1,0 +1,24 @@
+{
+    // Editor format settings
+    "editor.formatOnType": false,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "files.autoSave": "onFocusChange",
+
+    "[typescript]": {
+        "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+    },
+
+    "css.lint.unknownAtRules": "ignore",
+
+    // cSpell configuration
+    "cSpell.allowCompoundWords": true,
+    "cSpell.words": [
+        "vercel"
+    ],
+    "conventionalCommits.scopes": [
+        "frontend"
+    ]
+    
+}
