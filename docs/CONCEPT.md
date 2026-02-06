@@ -1,8 +1,8 @@
 # CONCEPT: Polish Election Calculator
 
-**Author**: gwiazdan
-**Created**: 06-02-2026
-**Version:** 0.1
+**Author**: gwiazdan  
+**Created**: 06-02-2026  
+**Version:** 0.1  
 
 
 # Summary
