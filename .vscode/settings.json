@@ -15,10 +15,29 @@
     // cSpell configuration
     "cSpell.allowCompoundWords": true,
     "cSpell.words": [
+        "mypy",
+        "prek",
+        "venv",
         "vercel"
     ],
     "conventionalCommits.scopes": [
-        "frontend"
-    ]
+        "frontend",
+        "backend"
+    ],
+
+    "cSpell.ignorePaths": [
+        "node_modules", 
+        "**/node_modules",
+        "**/node_modules/**", 
+        "**/.venv/**",
+        "*.lock",
+        "*.toml",
+        ".git",
+        ".vscode/"
+    ],
+
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+
     
 }
