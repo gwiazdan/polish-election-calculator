@@ -30,7 +30,8 @@
         "*.lock",
         "*.toml",
         ".git",
-        ".vscode/"
+        ".vscode/",
+        ".gitattributes"
     ],
     "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
