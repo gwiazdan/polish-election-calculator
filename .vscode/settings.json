@@ -5,13 +5,10 @@
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
     "files.autoSave": "onFocusChange",
-
     "[typescript]": {
         "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
     },
-
     "css.lint.unknownAtRules": "ignore",
-
     // cSpell configuration
     "cSpell.allowCompoundWords": true,
     "cSpell.words": [
@@ -22,22 +19,19 @@
     ],
     "conventionalCommits.scopes": [
         "frontend",
-        "backend"
+        "backend",
+        "research"
     ],
-
     "cSpell.ignorePaths": [
-        "node_modules", 
+        "node_modules",
         "**/node_modules",
-        "**/node_modules/**", 
+        "**/node_modules/**",
         "**/.venv/**",
         "*.lock",
         "*.toml",
         ".git",
         ".vscode/"
     ],
-
     "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
-
-    
 }
