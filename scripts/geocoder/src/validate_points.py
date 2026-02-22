@@ -1,6 +1,7 @@
 import geopandas as gpd
 
 from .config import GEODATA_FILE
+from .coords_finder import normalize_teryt
 
 
 class PointValidator:
@@ -10,7 +11,9 @@ class PointValidator:
     def _load_data(cls):
         if cls._dataframe is None:
             gdf = gpd.read_file(GEODATA_FILE)
-            gdf['JPT_KOD_JE'] = gdf['JPT_KOD_JE'].str[:-1]
+            gdf['JPT_KOD_JE'] = gdf['JPT_KOD_JE'].str[:-1].apply(normalize_teryt)
+            gdf = gdf.to_crs('EPSG:2180')
+            gdf = gdf.set_index('JPT_KOD_JE', drop=True)
             cls._dataframe = gdf
             
 
@@ -18,19 +21,19 @@ class PointValidator:
     def validate_point(cls, teryt, point) -> bool:
         """Checks whether points lies in municipality"""
         cls._load_data()
-        gdf = cls._dataframe.set_index("JPT_KOD_JE").copy()
+        gdf = cls._dataframe.copy()
         if teryt not in gdf.index:
             return False
 
         row = gdf.loc[teryt]
 
-        return row.geometry.contains(point)
+        return row.geometry.covers(point)
 
     @classmethod
     def get_centroid(cls, teryt) -> bool:
         """Returns centroid of the municipality"""
         cls._load_data()
-        gdf = cls._dataframe.set_index("JPT_KOD_JE").copy()
+        gdf = cls._dataframe.copy()
         if teryt not in gdf.index:
             return None
         return gdf.loc[teryt].geometry.centroid

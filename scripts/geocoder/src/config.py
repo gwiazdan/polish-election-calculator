@@ -5,7 +5,7 @@ OUTPUT_SUCCESS = "data/processed/geocoded_success.jsonl"
 OUTPUT_FAILED = "data/processed/geocoded_failed.jsonl"
 CHECKPOINT_FILE = "data/processed/.checkpoint"
 
-GEODATA_FILE = "zip://data/raw/gminy.zip"
+GEODATA_FILE = "zip://data/raw/00_jednostki_administracyjne.zip!A03_Granice_gmin.shp"
 
 PARTY_ROWS = {
     'BIEJAT Magdalena Agnieszka': 'nowa_lewica',

@@ -20,7 +20,8 @@
     "conventionalCommits.scopes": [
         "frontend",
         "backend",
-        "research"
+        "research",
+        "scripts"
     ],
     "cSpell.ignorePaths": [
         "node_modules",
@@ -36,4 +37,6 @@
     ],
     "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.pythonProjects": [],
 }

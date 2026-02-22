@@ -64,6 +64,9 @@ def main():
         + "_"
         + df["Numer posesji"].astype(str)
     )
+    df["TERYT gminy"] = df["TERYT gminy"].apply(normalize_teryt)
+    mask = df["TERYT gminy"].astype(str).str.fullmatch(r"1465(0[2-9]|1[0-9])")
+    df.loc[mask, "TERYT gminy"] = "146501"
     df_unique = df.drop_duplicates(subset=["address_id"], keep="first")
 
     print(f"Total records: {len(df)}")
@@ -71,6 +74,7 @@ def main():
 
     processed = load_processed_addresses()
     df_todo = df_unique[~df_unique["address_id"].isin(processed)]
+
 
     print(f"Already processed: {len(processed)}")
     print(f"To process: {len(df_todo)}")
@@ -82,12 +86,11 @@ def main():
     success_count = 0
     failed_count = 0
 
-    # df_cities first
     for _, row in tqdm(df_todo.iterrows(), total=len(df_todo), desc="Geocoding"):
         locality = row["Miejscowość"]
         street = row["Ulica"]
         number = str(row["Numer posesji"]).strip()
-        teryt = normalize_teryt(row["TERYT gminy"])
+        teryt = row["TERYT gminy"]
 
         if "/" in number:
             number = number.split("/")[0].strip()
