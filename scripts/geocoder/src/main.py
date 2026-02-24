@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
@@ -27,7 +29,6 @@ def load_processed_addresses():
 
     return processed
 
-
 def main():
     Path(OUTPUT_SUCCESS).parent.mkdir(parents=True, exist_ok=True)
 
@@ -50,6 +51,7 @@ def main():
     df_results["teryt_norm"] = df_results["Teryt Gminy"].apply(normalize_teryt)
     df_results["komisja"] = df_results["Nr komisji"].astype(str)
     results_lookup = df_results.set_index(["teryt_norm", "komisja"], drop=False)
+    results_lookup_map = results_lookup.to_dict(orient="index")
 
     df["Ulica"] = df["Ulica"].fillna("")
     df["Numer posesji"] = df["Numer posesji"].fillna("")
@@ -80,63 +82,83 @@ def main():
     print(f"To process: {len(df_todo)}")
 
     if len(df_todo) == 0:
-        print("✅ All addresses already geocoded!")
+        print("All addresses already geocoded!")
         return
 
     success_count = 0
     failed_count = 0
 
-    for _, row in tqdm(df_todo.iterrows(), total=len(df_todo), desc="Geocoding"):
-        locality = row["Miejscowość"]
-        street = row["Ulica"]
-        number = str(row["Numer posesji"]).strip()
-        teryt = row["TERYT gminy"]
+    with tqdm(total=len(df_todo)) as pbar:
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            todo = [
+                executor.submit(geocode_row, row, results_lookup_map, total_votes_col, total_pops_col)
+                for row in df_todo.to_dict(orient="records")
+            ]
+            for future in as_completed(todo):
+                record, point, method, address_id = future.result()
+                if point is not None:
+                    record.update({"geometry": point})
+                    record.update({"method": method})
+                    append_to_jsonl(record, OUTPUT_SUCCESS)
+                    success_count += 1
+                else:
+                    append_to_jsonl(record, OUTPUT_FAILED)
+                    failed_count += 1
+                save_checkpoint(address_id)
+                pbar.update(1)
 
-        if "/" in number:
-            number = number.split("/")[0].strip()
+    print(f"Geocoding finished. Success: {success_count}, Failed: {failed_count}")
+            
 
-        result = geocode_address(locality, street, number, teryt)
+def geocode_row(row, results_lookup_map, total_votes_col, total_pops_col):
+    locality = row["Miejscowość"]
+    street = row["Ulica"]
+    number = str(row["Numer posesji"]).strip()
+    teryt = row["TERYT gminy"]
 
-        key = (teryt, str(row["Numer"]))
-        row_results = results_lookup.loc[key] if key in results_lookup.index else None
+    if "/" in number:
+        number = number.split("/")[0].strip()
 
-        record = {
-            "teryt": teryt,
-            "numer": row["Numer"],
-            "gmina": row["Gmina"],
-            "powiat": row["Powiat"],
-            "wojewodztwo": row["Województwo"],
-            "total_votes": (
-                row_results[total_votes_col] if row_results is not None else None
-            ),
-            "total_pops": (
-                row_results[total_pops_col] if row_results is not None else None
-            ),
-        }
+    result, method = geocode_address(locality, street, number, teryt)
 
-        if row_results is not None:
-            record.update(
-                {short: row_results[full] for full, short in PARTY_ROWS.items()}
-            )
+    numer = row["Numer"]
+    key = (teryt, str(numer))
+    row_results = results_lookup_map.get(key)
 
-        point = None
-        if result:
-            point = (
-                result
-                if PointValidator.validate_point(teryt, result)
-                else PointValidator.get_centroid(teryt)
-            )
+    record = {
+        "teryt": teryt,
+        "numer": numer,
+        "municipality": row["Gmina"],
+        "county": row["Powiat"],
+        "voivodeship": row["Województwo"],
+        "total_votes": (
+            row_results[total_votes_col] if row_results is not None else None
+        ),
+        "total_pops": (
+            row_results[total_pops_col] if row_results is not None else None
+        ),
+    }
 
-        if point is not None:
-            record.update({"geometry": point})
-            append_to_jsonl(record, OUTPUT_SUCCESS)
-            success_count += 1
-        else:
-            append_to_jsonl(record, OUTPUT_FAILED)
-            failed_count += 1
+    if row_results is not None:
+        record.update(
+            {
+                short: int(row_results[full])
+                for full, short in PARTY_ROWS.items()
+                if row_results.get(full) is not None
+            }
+        )
 
-        save_checkpoint(row["address_id"])
+    point = None
+    if result and PointValidator.validate_point(teryt,result):
+        point = result
+    elif result and PointValidator.validate_point(teryt, new_point := PointValidator.inverse_coords(result)):
+        point = new_point
+        method = "Inverted coords"
+    else:
+        point = PointValidator.get_centroid(teryt)
+        method = "Centroid"
 
-
+    return record, point, method, row["address_id"]
+    
 if __name__ == "__main__":
     main()

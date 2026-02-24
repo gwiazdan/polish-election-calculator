@@ -2,7 +2,7 @@ import geopandas as gpd
 
 from .config import GEODATA_FILE
 from .coords_finder import normalize_teryt
-
+from shapely import Point
 
 class PointValidator:
     _dataframe = None
@@ -37,3 +37,9 @@ class PointValidator:
         if teryt not in gdf.index:
             return None
         return gdf.loc[teryt].geometry.centroid
+    
+    @classmethod
+    def inverse_coords(cls, point: Point) -> Point:
+        x = point.x
+        y = point.y
+        return Point(y,x)
