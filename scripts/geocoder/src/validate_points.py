@@ -40,6 +40,8 @@ class PointValidator:
     
     @classmethod
     def inverse_coords(cls, point: Point) -> Point:
-        x = point.x
-        y = point.y
-        return Point(y,x)
+        if point.geom_type == 'Point':
+            x = point.x
+            y = point.y
+            return Point(y,x)
+        return None
